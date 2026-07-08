@@ -1,0 +1,1225 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="All YT DL — Free YouTube Video Download & Thumbnail Downloader Online"
+  description="All YT DL is your all-in-one online toolkit. Download YouTube videos in HD, 4K, and MP3 for free. Grab YouTube thumbnails in 4K. Convert images to text with OCR. Capture full website screenshots and export to PDF. Fast, ad-free, and private."
+>
+  <!-- Hero Section -->
+  <section class="flex flex-col items-center justify-center text-center gap-6 mt-6 mb-16 relative z-10" aria-labelledby="hero-title">
+    <!-- Announcement Badge -->
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-canvas border border-hairline shadow-level-2 rounded-full hover:scale-[1.02] transition-transform duration-200" aria-label="Announcement">
+      <span class="inline-block w-2 h-2 rounded-full bg-link animate-pulse" aria-hidden="true"></span>
+      <span class="font-mono text-[10px] uppercase tracking-wider font-semibold text-primary">
+        Introducing ALL YT DL&nbsp;v1.0
+      </span>
+    </div>
+
+    <!-- Main Title -->
+    <h1 id="hero-title" class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-display-xl text-primary leading-none text-wrap-balance">
+      All YouTube downloads,<br />simplified.
+    </h1>
+    
+    <!-- Subtitle -->
+    <p class="max-w-[580px] text-base md:text-lg text-body-text leading-relaxed text-wrap-balance">
+      A stark, ad-free developer utility to grab high-resolution thumbnails and extract video/audio streams instantly. No redirects. No spam. Just the files.
+    </p>
+  </section>
+
+  <!-- Main Tool Container -->
+  <section id="downloader" class="relative z-10 max-w-[800px] mx-auto mb-20" aria-label="YouTube Downloader Tool">
+    <!-- Feature Toggles (Vercel tab-ghost style) -->
+    <div class="flex justify-center mb-8" role="tablist" aria-label="Tool Features">
+      <div class="flex items-center gap-1 bg-canvas-soft-2 p-1 rounded-full shadow-level-1 border border-hairline">
+        <button 
+          id="tab-video" 
+          type="button"
+          class="px-5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer bg-primary text-on-primary shadow-level-2"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-video"
+          aria-label="Switch to Video and Audio Downloader"
+        >
+          Video Downloader
+        </button>
+        <button 
+          id="tab-thumbnail" 
+          type="button"
+          class="px-5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer text-body-text hover:text-primary hover:bg-canvas-soft"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-thumbnail"
+          aria-label="Switch to Thumbnail Grabber"
+        >
+          Thumbnail Grabber
+        </button>
+      </div>
+    </div>
+
+    <!-- Tool Card (Vercel card-marketing-large style) -->
+    <div class="bg-canvas border border-hairline rounded-lg shadow-level-4 p-6 md:p-8 transition-all duration-300">
+      
+      <!-- Input Form -->
+      <form id="downloader-form" class="space-y-4" novalidate>
+        <div class="flex flex-col gap-2">
+          <label for="youtube-url" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
+            Paste YouTube Video URL
+          </label>
+          <div class="relative flex items-center shadow-level-2 bg-canvas border border-hairline rounded-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-200">
+            <!-- Icon -->
+            <div class="pl-4 pr-2 text-mute" aria-hidden="true">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+              </svg>
+            </div>
+            
+            <!-- URL Input -->
+            <input 
+              id="youtube-url"
+              name="youtube-url"
+              type="url"
+              required
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ…"
+              class="w-full h-12 bg-transparent text-sm text-ink placeholder-mute focus:outline-none pr-12 font-mono"
+            />
+            
+            <!-- Reset Button -->
+            <button 
+              id="btn-reset" 
+              type="button" 
+              class="absolute right-12 text-mute hover:text-primary p-2 hidden cursor-pointer"
+              aria-label="Clear url input"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <!-- Submit Icon Action -->
+            <button 
+              id="btn-submit" 
+              type="submit"
+              class="absolute right-2 p-2 bg-primary text-on-primary hover:bg-primary/95 rounded-xs transition-colors shadow-level-2 cursor-pointer h-8 w-8 flex items-center justify-center"
+              aria-label="Retrieve video resources"
+            >
+              <span id="submit-spinner" class="hidden w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
+              <svg id="submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </button>
+          </div>
+          <!-- Error Feedback Container -->
+          <div id="form-error" class="hidden text-xs text-error font-medium mt-1 flex items-center gap-1.5" aria-live="polite">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span id="error-message">Please enter a valid YouTube video URL.</span>
+          </div>
+        </div>
+      </form>
+
+      <!-- Welcome Guide Frame -->
+      <div id="welcome-guide" class="mt-8 border border-hairline bg-canvas-soft rounded-sm p-5 md:p-6 text-center">
+        <h3 class="font-mono text-[11px] uppercase tracking-widest text-primary font-semibold mb-2">How It Works</h3>
+        <p class="text-xs text-body-text leading-relaxed max-w-[480px] mx-auto">
+          Paste any standard video link, YouTube Short, or channel share URL. The tool will instantly query video details and prepare raw high-quality direct download nodes.
+        </p>
+      </div>
+
+      <!-- Dashboard Results Panel (Hidden initially) -->
+      <div id="results-panel" class="hidden mt-8 space-y-8 animate-fade-in">
+        
+        <!-- Video Metadata Summary -->
+        <div class="flex flex-col md:flex-row gap-5 p-4 bg-canvas-soft border border-hairline rounded-sm">
+          <div class="relative w-full md:w-44 aspect-video rounded-sm overflow-hidden bg-canvas-soft-2 border border-hairline shadow-level-1 shrink-0">
+            <img id="meta-thumbnail" src="" alt="YouTube Video Preview" class="w-full h-full object-cover" width="176" height="99" />
+          </div>
+          <div class="flex flex-col justify-between py-1 min-w-0">
+            <div>
+              <span id="meta-author" class="font-mono text-[10px] uppercase tracking-wider text-mute font-semibold">
+                Channel Name
+              </span>
+              <h2 id="meta-title" class="text-base md:text-lg font-semibold tracking-display-md text-primary mt-1 truncate text-wrap-balance leading-snug">
+                Video Title
+              </h2>
+            </div>
+            <div class="flex items-center gap-2 mt-3 font-mono text-[11px] text-mute">
+              <span>ID: <code id="meta-id" class="text-primary font-semibold">dQw4w9WgXcQ</code></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ──────────────── PANELS ──────────────── -->
+
+        <!-- A. VIDEO DOWNLOADER PANEL -->
+        <div id="panel-video" class="space-y-6" role="tabpanel" aria-labelledby="tab-video">
+          <div class="space-y-4">
+            <div class="flex flex-col gap-2">
+              <label for="video-resolution" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
+                Select Download Format
+              </label>
+              <div class="relative w-full max-w-[320px]">
+                <select id="video-resolution" class="w-full h-10 px-3 bg-canvas border border-hairline rounded-sm text-xs font-semibold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer">
+                  <option value="1085" selected>1080p MP4 — Full HD (Best Quality)</option>
+                  <option value="720">720p MP4 — High Definition</option>
+                  <option value="480">480p MP4 — Standard</option>
+                  <option value="360">360p MP4 — Low-Res Web</option>
+                  <option value="mp3">MP3 Audio — High Quality Extract</option>
+                </select>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-mute pointer-events-none" aria-hidden="true">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Download Button Trigger -->
+            <button 
+              id="btn-download-video" 
+              type="button"
+              class="w-full h-11 bg-primary text-on-primary text-sm font-semibold rounded-sm shadow-level-3 hover:bg-primary/95 transition-colors cursor-pointer flex items-center justify-center gap-2"
+              aria-label="Start video extraction"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              <span>Download Media</span>
+            </button>
+
+            <!-- Error Console (Hidden initially) -->
+            <div id="download-fallback-box" class="hidden border border-error/20 bg-error-soft/10 rounded-sm p-5 space-y-3">
+              <div class="flex gap-2">
+                <svg class="w-4 h-4 text-error shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="space-y-1">
+                  <h4 class="text-xs font-semibold text-primary font-mono uppercase tracking-wider">Download Error</h4>
+                  <p id="fallback-error-msg" class="text-xs text-body-text leading-relaxed">
+                    Could not process this download. Please try again.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- B. THUMBNAIL GRABBER PANEL -->
+        <div id="panel-thumbnail" class="hidden space-y-6" role="tabpanel" aria-labelledby="tab-thumbnail">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Thumbnail Option Card: MaxRes (1080p) -->
+            <div class="border border-hairline bg-canvas rounded-sm overflow-hidden flex flex-col shadow-level-2 group" id="card-thumbnail-max">
+              <div class="relative aspect-video bg-canvas-soft-2 border-b border-hairline overflow-hidden">
+                <img id="thumb-img-max" src="" alt="Maximum Resolution Thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" loading="lazy" />
+                <span class="absolute top-2 left-2 px-2 py-0.5 bg-primary/80 backdrop-blur-sm text-on-primary font-mono text-[9px] rounded-sm font-semibold uppercase">
+                  1080p MaxRes
+                </span>
+              </div>
+              <div class="p-3 flex-grow flex flex-col justify-between gap-3">
+                <div class="font-mono text-[10px] text-mute flex items-center justify-between">
+                  <span>Dimension: 1920&nbsp;&times;&nbsp;1080</span>
+                  <span class="text-primary font-semibold">HQ JPEG</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button 
+                    type="button" 
+                    class="h-8 bg-primary hover:bg-primary/95 text-on-primary text-xs font-semibold rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center gap-1 col-span-2 btn-download-thumb"
+                    data-type="maxresdefault"
+                    aria-label="Download 1080p Maximum Resolution Thumbnail File"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="h-8 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-primary text-xs font-medium rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center btn-copy-thumb"
+                    data-type="maxresdefault"
+                    aria-label="Copy 1080p Thumbnail to Clipboard"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 10v-3m0 0l-1.5 1.5M12 12l1.5 1.5" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Option Card: High (720p / Standard) -->
+            <div class="border border-hairline bg-canvas rounded-sm overflow-hidden flex flex-col shadow-level-2 group" id="card-thumbnail-sd">
+              <div class="relative aspect-video bg-canvas-soft-2 border-b border-hairline overflow-hidden">
+                <img id="thumb-img-sd" src="" alt="Standard Resolution Thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" loading="lazy" />
+                <span class="absolute top-2 left-2 px-2 py-0.5 bg-primary/80 backdrop-blur-sm text-on-primary font-mono text-[9px] rounded-sm font-semibold uppercase">
+                  720p Standard
+                </span>
+              </div>
+              <div class="p-3 flex-grow flex flex-col justify-between gap-3">
+                <div class="font-mono text-[10px] text-mute flex items-center justify-between">
+                  <span>Dimension: 1280&nbsp;&times;&nbsp;720</span>
+                  <span class="text-primary font-semibold">HQ JPEG</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button 
+                    type="button" 
+                    class="h-8 bg-primary hover:bg-primary/95 text-on-primary text-xs font-semibold rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center gap-1 col-span-2 btn-download-thumb"
+                    data-type="sddefault"
+                    aria-label="Download 720p Standard Resolution Thumbnail File"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="h-8 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-primary text-xs font-medium rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center btn-copy-thumb"
+                    data-type="sddefault"
+                    aria-label="Copy 720p Thumbnail to Clipboard"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 10v-3m0 0l-1.5 1.5M12 12l1.5 1.5" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Option Card: HQ (480p) -->
+            <div class="border border-hairline bg-canvas rounded-sm overflow-hidden flex flex-col shadow-level-2 group" id="card-thumbnail-hq">
+              <div class="relative aspect-video bg-canvas-soft-2 border-b border-hairline overflow-hidden">
+                <img id="thumb-img-hq" src="" alt="High Quality Thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" loading="lazy" />
+                <span class="absolute top-2 left-2 px-2 py-0.5 bg-primary/80 backdrop-blur-sm text-on-primary font-mono text-[9px] rounded-sm font-semibold uppercase">
+                  480p High
+                </span>
+              </div>
+              <div class="p-3 flex-grow flex flex-col justify-between gap-3">
+                <div class="font-mono text-[10px] text-mute flex items-center justify-between">
+                  <span>Dimension: 640&nbsp;&times;&nbsp;480</span>
+                  <span class="text-primary font-semibold">JPEG</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button 
+                    type="button" 
+                    class="h-8 bg-primary hover:bg-primary/95 text-on-primary text-xs font-semibold rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center gap-1 col-span-2 btn-download-thumb"
+                    data-type="hqdefault"
+                    aria-label="Download 480p High Quality Thumbnail File"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="h-8 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-primary text-xs font-medium rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center btn-copy-thumb"
+                    data-type="hqdefault"
+                    aria-label="Copy 480p Thumbnail to Clipboard"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 10v-3m0 0l-1.5 1.5M12 12l1.5 1.5" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Option Card: MQ (360p) -->
+            <div class="border border-hairline bg-canvas rounded-sm overflow-hidden flex flex-col shadow-level-2 group" id="card-thumbnail-mq">
+              <div class="relative aspect-video bg-canvas-soft-2 border-b border-hairline overflow-hidden">
+                <img id="thumb-img-mq" src="" alt="Medium Quality Thumbnail" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" loading="lazy" />
+                <span class="absolute top-2 left-2 px-2 py-0.5 bg-primary/80 backdrop-blur-sm text-on-primary font-mono text-[9px] rounded-sm font-semibold uppercase">
+                  360p Medium
+                </span>
+              </div>
+              <div class="p-3 flex-grow flex flex-col justify-between gap-3">
+                <div class="font-mono text-[10px] text-mute flex items-center justify-between">
+                  <span>Dimension: 480&nbsp;&times;&nbsp;360</span>
+                  <span class="text-primary font-semibold">JPEG</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button 
+                    type="button" 
+                    class="h-8 bg-primary hover:bg-primary/95 text-on-primary text-xs font-semibold rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center gap-1 col-span-2 btn-download-thumb"
+                    data-type="mqdefault"
+                    aria-label="Download 360p Medium Quality Thumbnail File"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="h-8 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-primary text-xs font-medium rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center justify-center btn-copy-thumb"
+                    data-type="mqdefault"
+                    aria-label="Copy 360p Thumbnail to Clipboard"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 10v-3m0 0l-1.5 1.5M12 12l1.5 1.5" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Information & Features Section -->
+  <section id="features" class="relative z-10 max-w-[1200px] mx-auto border-t border-hairline pt-16 mb-20" aria-labelledby="features-title">
+    <div class="text-center max-w-[600px] mx-auto mb-12">
+      <h2 id="features-title" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold mb-2">Designed for Creators</h2>
+      <p class="text-xl md:text-2xl font-semibold tracking-display-md text-primary text-pretty leading-none">
+        No loops. No spam. Instant outputs.
+      </p>
+    </div>
+
+    <!-- 3-Column Marketing Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Feature Card 1 -->
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-link/10 text-link flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">Functional Image Grabs</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          Competitor sites open image links in separate tabs, forcing you to right-click and save manually. Our system converts streams to blobs, downloading files directly.
+        </p>
+      </div>
+
+      <!-- Feature Card 2 -->
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-violet/10 text-violet flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">Audio extraction</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          Quickly extract raw audio streams as high-quality `.mp3` files for reference, backing audio, or offline voice listening.
+        </p>
+      </div>
+
+      <!-- Feature Card 3 -->
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-cyan-deep/10 text-cyan-deep flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">Developer Fallback Consoles</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          If YouTube blocks API extraction nodes, the app generates custom, clean `yt-dlp` commands for terminal execution, avoiding adware loops.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Are downloads completely free and unlimited?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! This frontend application uses direct public extraction nodes and oEmbed wrappers to supply files completely free of charge. We do not require authentication or memberships."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is it legal to download YouTube videos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Downloading videos from YouTube violates YouTube's Terms of Service, but for personal, offline use it is generally considered legal under fair use in most countries. We encourage users to respect copyright and only download content they own or have permission to use."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What video resolutions are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The tool fetches the highest available quality. Depending on the video, you can get 360p, 480p, 720p HD, 1080p Full HD, and sometimes 4K or 8K if the uploader provided those formats."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download just the audio from a YouTube video?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! You can copy the command from our yt-dlp guide to extract audio-only MP3 or M4A files. This is perfect for music, podcasts, or any content where you only need the audio track."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to install any software?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. The online downloader works entirely in your browser. You only need to install yt-dlp on your machine if you want to use the advanced terminal commands as a backup method."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is a CORS proxy used?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "YouTube's metadata and image servers block client-side fetch requests from outer domains because they lack Cross-Origin Resource Sharing (CORS) header permissions. We route query requests through secure public proxies (corsproxy.io and allorigins.win) to fetch metadata directly in your browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download YouTube Shorts?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, YouTube Shorts are regular YouTube videos with a vertical aspect ratio. Just paste the Shorts URL into the input field and the tool will fetch it the same way as any other YouTube video."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I download entire YouTube playlists?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The online tool handles one video at a time. For bulk playlist downloading, we recommend using the provided yt-dlp terminal commands, which support batch processing of entire playlists and channels."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is yt-dlp?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "yt-dlp is a powerful open-source command-line tool for downloading videos and audio from YouTube. If our online downloader API triggers a rate limit or block, we provide custom, pre-formatted terminal commands to help developers download files directly on their own machines."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does YouTube keep blocking download tools?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "YouTube regularly updates its infrastructure to prevent third-party downloading, as it violates their Terms of Service. Our tool uses active public extraction methods that adapt to these changes. If the online method is blocked, the yt-dlp terminal commands serve as a reliable fallback."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="relative z-10 max-w-[800px] mx-auto border-t border-hairline pt-16 mb-20" aria-labelledby="faq-title">
+    <div class="text-center mb-10">
+      <h2 id="faq-title" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold mb-2">FAQ</h2>
+      <p class="text-xl md:text-2xl font-semibold tracking-display-md text-primary text-pretty leading-none">
+        Common Questions
+      </p>
+    </div>
+
+    <!-- Accordion List -->
+    <div class="space-y-4">
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Are downloads completely free and unlimited?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Yes! This frontend application uses direct public extraction nodes and oEmbed wrappers to supply files completely free of charge. We do not require authentication or memberships.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Is it legal to download YouTube videos?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Downloading videos from YouTube violates YouTube&rsquo;s Terms of Service, but for personal, offline use it is generally considered legal under fair use in most countries. We encourage users to respect copyright and only download content they own or have permission to use.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>What video resolutions are available?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          The tool fetches the highest available quality. Depending on the video, you can get 360p, 480p, 720p HD, 1080p Full HD, and sometimes 4K or 8K if the uploader provided those formats.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Can I download just the audio?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Yes! You can copy the command from our yt-dlp guide to extract audio-only MP3 or M4A files. This is perfect for music, podcasts, or any content where you only need the audio track.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Do I need to install any software?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          No. The online downloader works entirely in your browser. You only need to install yt-dlp on your machine if you want to use the advanced terminal commands as a backup method.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Why is a CORS proxy used?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          YouTube&rsquo;s metadata and image servers block client-side fetch requests from outer domains because they lack Cross-Origin Resource Sharing (CORS) header permissions. We route query requests through secure public proxies (`corsproxy.io` and `allorigins.win`) to fetch metadata directly in your browser.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Can I download YouTube Shorts?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Yes, YouTube Shorts are regular YouTube videos with a vertical aspect ratio. Just paste the Shorts URL into the input field and the tool will fetch it the same way as any other YouTube video.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Can I download entire playlists?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          The online tool handles one video at a time. For bulk playlist downloading, we recommend using the provided yt-dlp terminal commands, which support batch processing of entire playlists and channels.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>What is yt-dlp?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          `yt-dlp` is a powerful open-source command-line tool for downloading videos and audio from YouTube and 1,700+ other sites. If our online downloader API triggers a rate limit or block, we provide custom, pre-formatted terminal commands to help developers download files directly on their own machines.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Why does YouTube keep blocking downloaders?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          YouTube regularly updates its infrastructure to prevent third-party downloading, as it violates their Terms of Service. Our tool uses active public extraction methods that adapt to these changes. If the online method is blocked, the yt-dlp terminal commands serve as a reliable fallback.
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- SEO Content Section -->
+  <section id="about" class="relative z-10 max-w-[800px] mx-auto border-t border-hairline pt-16 mb-20" aria-labelledby="about-title">
+    <div class="text-center mb-10">
+      <h2 id="about-title" class="text-xl md:text-2xl font-semibold tracking-display-md text-primary text-pretty leading-none">
+        All YT DL — Your Complete Online Media Toolkit
+      </h2>
+    </div>
+
+    <div class="space-y-4 text-sm text-body-text leading-relaxed">
+      <p>
+        <strong class="text-primary">All YT DL</strong> is a powerful, privacy-first online platform that
+        gives you everything you need to work with online media. Whether you are looking for a free
+        <strong class="text-primary">YouTube video download</strong> tool, a
+        <strong class="text-primary">YouTube thumbnail downloader</strong>, an
+        <strong class="text-primary">image to text converter</strong>, or a
+        <strong class="text-primary">full website screenshot</strong> tool — All YT DL
+        delivers all of it in one clean, ad-free interface. No sign-ups, no spam, no hidden fees.
+      </p>
+
+      <h3 class="text-base font-semibold tracking-display-sm text-primary mt-8">
+        Free YouTube Video Download in HD, 4K, and MP3
+      </h3>
+      <p>
+        The core of All YT DL is our fast and reliable <strong class="text-primary">YouTube video download</strong>
+        engine. You can <strong class="text-primary">download YouTube videos</strong> in multiple resolutions
+        including 360p, 480p, 720p HD, and full 1080p Full HD. If you are after the highest quality, use our
+        <strong class="text-primary">YouTube video download 4K</strong> option to grab ultra-high-definition
+        footage. Need just the audio? Our <strong class="text-primary">YouTube video download MP3</strong>
+        feature extracts clean audio streams as high-quality .m4a files, perfect for offline listening,
+        podcasts, or music collections. Every <strong class="text-primary">online YouTube video download</strong>
+        is processed quickly and efficiently without any of the redirects, pop-ups, or spam that plague
+        other sites. We route requests through secure CORS proxies to fetch metadata and then serve the
+        download directly from your browser. For developers and advanced users, we also provide a
+        pre-formatted yt-dlp terminal command as a fallback option when YouTube blocks API extraction nodes.
+        This makes All YT DL the most versatile <strong class="text-primary">free YouTube video download</strong>
+        tool available online.
+      </p>
+
+      <h3 class="text-base font-semibold tracking-display-sm text-primary mt-8">
+        YouTube Thumbnail Downloader — Grab Thumbnails in 4K
+      </h3>
+      <p>
+        Our <strong class="text-primary">YouTube thumbnail downloader</strong> is designed for content creators,
+        designers, video editors, and marketers who need high-quality video thumbnails. With a single click,
+        you can <strong class="text-primary">download YouTube thumbnails</strong> in four different resolutions:
+        maxresdefault (1080p / 4K), sddefault (720p), hqdefault (480p), and mqdefault (360p). The
+        <strong class="text-primary">YouTube thumbnail download 4K</strong> option gives you the highest
+        possible quality for professional use. Every
+        <strong class="text-primary">YouTube thumbnail download free</strong> feature works without any
+        registration or payment. You can also copy thumbnails directly to your clipboard as PNG images,
+        making it easy to paste into design software, documents, or social media posts. All YT DL is the
+        most straightforward <strong class="text-primary">yt thumbnail downloader</strong> on the web.
+      </p>
+
+      <h3 class="text-base font-semibold tracking-display-sm text-primary mt-8">
+        Image to Text Converter — OCR in Your Browser
+      </h3>
+      <p>
+        Beyond video tools, All YT DL includes a powerful <strong class="text-primary">image to text converter</strong>
+        powered by Tesseract.js. Upload a screenshot, scanned document, or any image containing text, and our
+        OCR engine extracts every word. Use it as an <strong class="text-primary">image to text extractor</strong>
+        to pull quotes, data, or notes from images. The <strong class="text-primary">image to text converter online</strong>
+        tool is 100% private — all processing happens in your browser and your images never leave your device.
+        You can <strong class="text-primary">convert image to text</strong> with a drag-and-drop interface,
+        then copy the results as formatted text (preserving colors and bold styles) or as plain text.
+        This makes All YT DL not just a video download platform but a complete
+        <strong class="text-primary">image to text</strong> solution for students, researchers, and professionals.
+      </p>
+
+      <h3 class="text-base font-semibold tracking-display-sm text-primary mt-8">
+        Full Website Screenshot & Website to PDF Tool
+      </h3>
+      <p>
+        The <strong class="text-primary">full website screenshot</strong> tool captures any webpage from top
+        to bottom in stunning 4K retina quality. Paste a URL and instantly get a complete screenshot of the
+        entire page, including content loaded on scroll. Use the <strong class="text-primary">webpage screenshot tool</strong>
+        to capture website designs, landing pages, articles, or portfolios. You can download the result as a
+        high-resolution PNG or use the <strong class="text-primary">website to PDF</strong> feature to generate
+        a professional, print-ready PDF document. This is perfect for designers who need to share website mockups
+        with clients, developers who want to document page layouts, or anyone who needs to
+        <strong class="text-primary">capture an entire webpage</strong> for offline reference. Unlike browser
+        extensions or screenshot software, our tool renders every page in a real headless Chromium browser
+        at 3840px wide with 2x device scale, ensuring even the smallest text and finest details are crystal clear.
+      </p>
+
+      <h3 class="text-base font-semibold tracking-display-sm text-primary mt-8">
+        Why Choose All YT DL?
+      </h3>
+      <p>
+        All YT DL stands apart from other online tools for several reasons. First, we are completely
+        <strong class="text-primary">ad-free</strong> — no pop-ups, no redirects, no spam. Every
+        <strong class="text-primary">YouTube video download free</strong> feature works without forcing you
+        through affiliate links or survey walls. Second, we prioritize <strong class="text-primary">privacy</strong>.
+        Our image to text OCR runs entirely in your browser. Our screenshot tool uses a server-side headless
+        browser but never stores or shares your data. Third, we provide <strong class="text-primary">multiple tools
+        in one place</strong> — instead of bookmarking five different websites for video downloading, thumbnail
+        grabbing, OCR, and screenshots, you get everything at All YT DL. Finally, our tools are designed with a
+        clean, developer-friendly interface that is fast, accessible, and a pleasure to use. Whether you need
+        to <strong class="text-primary">download YouTube videos in HD</strong>, grab a
+        <strong class="text-primary">4K YouTube thumbnail</strong>, convert a screenshot
+        <strong class="text-primary">image to text</strong>, or capture a
+        <strong class="text-primary">full webpage screenshot as PDF</strong>, All YT DL has you covered.
+      </p>
+    </div>
+  </section>
+
+  <!-- Global Javascript Engine for State and APIs -->
+  <script is:inline>
+    (function() {
+      // ──────────────── STATE VARIABLES ────────────────
+      let currentTab = 'video'; // 'video' or 'thumbnail'
+      let isFetching = false;
+      let activeVideoId = null;
+      let activeVideoUrl = '';
+      let videoMetadata = null;
+
+      // ──────────────── DOM ELEMENTS ────────────────
+      const tabVideo = document.getElementById('tab-video');
+      const tabThumbnail = document.getElementById('tab-thumbnail');
+      const panelVideo = document.getElementById('panel-video');
+      const panelThumbnail = document.getElementById('panel-thumbnail');
+      
+      const form = document.getElementById('downloader-form');
+      const urlInput = document.getElementById('youtube-url');
+      const btnReset = document.getElementById('btn-reset');
+      const btnSubmit = document.getElementById('btn-submit');
+      const submitIcon = document.getElementById('submit-icon');
+      const submitSpinner = document.getElementById('submit-spinner');
+      const formError = document.getElementById('form-error');
+      const errorMessage = document.getElementById('error-message');
+      
+      const welcomeGuide = document.getElementById('welcome-guide');
+      const resultsPanel = document.getElementById('results-panel');
+      const metaThumbnail = document.getElementById('meta-thumbnail');
+      const metaAuthor = document.getElementById('meta-author');
+      const metaTitle = document.getElementById('meta-title');
+      const metaId = document.getElementById('meta-id');
+      
+      /** @type {{ combined: any[], video: any[], audio: any[] }|null} */
+      let ytFormats = null;
+
+      const btnDownloadVideo = document.getElementById('btn-download-video');
+      const valResolution = document.getElementById('video-resolution');
+      const fallbackBox = document.getElementById('download-fallback-box');
+      const fallbackErrorMsg = document.getElementById('fallback-error-msg');
+
+      const cardMax = document.getElementById('card-thumbnail-max');
+      const cardSd = document.getElementById('card-thumbnail-sd');
+      const cardHq = document.getElementById('card-thumbnail-hq');
+      const cardMq = document.getElementById('card-thumbnail-mq');
+
+      const thumbImgMax = document.getElementById('thumb-img-max');
+      const thumbImgSd = document.getElementById('thumb-img-sd');
+      const thumbImgHq = document.getElementById('thumb-img-hq');
+      const thumbImgMq = document.getElementById('thumb-img-mq');
+
+      // ──────────────── UTILITIES ────────────────
+      function extractYouTubeId(url) {
+        if (!url) return null;
+        // Standard, Shorts, Embeds, Shared links, Mobile, YouTube Music
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/|music\.youtube\.com\/watch\?v=)([^#\&\?]*).*/;
+        const match = url.trim().match(regExp);
+        if (match && match[2] && match[2].length === 11) {
+          return match[2];
+        }
+        // Direct ID paste (11 alphanumeric characters)
+        const idReg = /^[a-zA-Z0-9_-]{11}$/;
+        if (idReg.test(url.trim())) {
+          return url.trim();
+        }
+        return null;
+      }
+
+      function showValidationError(msg) {
+        errorMessage.textContent = msg;
+        formError.classList.remove('hidden');
+        urlInput.classList.add('border-error');
+        urlInput.classList.add('focus-within:ring-error/20');
+        urlInput.focus();
+      }
+
+      function clearValidationError() {
+        formError.classList.add('hidden');
+        urlInput.classList.remove('border-error');
+        urlInput.classList.remove('focus-within:ring-error/20');
+      }
+
+      function setSubmitLoading(loading) {
+        isFetching = loading;
+        if (loading) {
+          submitIcon.classList.add('hidden');
+          submitSpinner.classList.remove('hidden');
+          btnSubmit.disabled = true;
+        } else {
+          submitIcon.classList.remove('hidden');
+          submitSpinner.classList.add('hidden');
+          btnSubmit.disabled = false;
+        }
+      }
+
+      // ──────────────── TABS TOGGLE ────────────────
+      function switchTab(tab) {
+        currentTab = tab;
+        if (tab === 'video') {
+          // Tab button styles
+          tabVideo.classList.add('bg-primary', 'text-on-primary', 'shadow-level-2');
+          tabVideo.classList.remove('text-body-text', 'hover:text-primary', 'hover:bg-canvas-soft');
+          tabVideo.setAttribute('aria-selected', 'true');
+          
+          tabThumbnail.classList.remove('bg-primary', 'text-on-primary', 'shadow-level-2');
+          tabThumbnail.classList.add('text-body-text', 'hover:text-primary', 'hover:bg-canvas-soft');
+          tabThumbnail.setAttribute('aria-selected', 'false');
+          
+          // View visibility
+          panelVideo.classList.remove('hidden');
+          panelThumbnail.classList.add('hidden');
+        } else {
+          // Tab button styles
+          tabThumbnail.classList.add('bg-primary', 'text-on-primary', 'shadow-level-2');
+          tabThumbnail.classList.remove('text-body-text', 'hover:text-primary', 'hover:bg-canvas-soft');
+          tabThumbnail.setAttribute('aria-selected', 'true');
+          
+          tabVideo.classList.remove('bg-primary', 'text-on-primary', 'shadow-level-2');
+          tabVideo.classList.add('text-body-text', 'hover:text-primary', 'hover:bg-canvas-soft');
+          tabVideo.setAttribute('aria-selected', 'false');
+          
+          // View visibility
+          panelThumbnail.classList.remove('hidden');
+          panelVideo.classList.add('hidden');
+        }
+      }
+
+      tabVideo.addEventListener('click', () => switchTab('video'));
+      tabThumbnail.addEventListener('click', () => switchTab('thumbnail'));
+
+      // ──────────────── INPUT INTERACTIONS ────────────────
+      urlInput.addEventListener('input', () => {
+        clearValidationError();
+        if (urlInput.value.length > 0) {
+          btnReset.classList.remove('hidden');
+        } else {
+          btnReset.classList.add('hidden');
+        }
+      });
+
+      btnReset.addEventListener('click', () => {
+        urlInput.value = '';
+        btnReset.classList.add('hidden');
+        clearValidationError();
+        welcomeGuide.classList.remove('hidden');
+        resultsPanel.classList.add('hidden');
+        activeVideoId = null;
+        activeVideoUrl = '';
+        videoMetadata = null;
+        
+        // Reset fallback console
+        fallbackBox.classList.add('hidden');
+        btnDownloadVideo.disabled = false;
+        urlInput.focus();
+      });
+
+      // ──────────────── RETRIEVE DETAILS (oEmbed via Proxy) ────────────────
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearValidationError();
+        
+        const rawUrl = urlInput.value.trim();
+        if (!rawUrl) {
+          showValidationError('Please paste a YouTube video link.');
+          return;
+        }
+
+        const videoId = extractYouTubeId(rawUrl);
+        if (!videoId) {
+          showValidationError('Could not extract a valid YouTube Video ID. Please check the URL.');
+          return;
+        }
+
+        setSubmitLoading(true);
+        activeVideoId = videoId;
+        // Construct canonical URL
+        activeVideoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        
+        // Reset download panel state
+        fallbackBox.classList.add('hidden');
+        btnDownloadVideo.disabled = false;
+
+        try {
+          // Attempt to retrieve oEmbed metadata via a CORS proxy (corsproxy.io is fast and free)
+          const targetOembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(activeVideoUrl)}&format=json`;
+          const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetOembedUrl)}`;
+          
+          const response = await fetch(proxyUrl);
+          if (!response.ok) {
+            throw new Error('Metadata fetch failed');
+          }
+          
+          const data = await response.json();
+          videoMetadata = data;
+          
+          // Populate metadata
+          metaTitle.textContent = data.title || 'YouTube Video';
+          metaAuthor.textContent = data.author_name || 'Creator';
+        } catch (error) {
+          console.warn('oEmbed metadata retrieval via proxy failed. Falling back to generic details.', error);
+          // Graceful fallback to avoid rendering a broken screen
+          metaTitle.textContent = `YouTube Video (${videoId})`;
+          metaAuthor.textContent = 'YouTube Creator';
+        } finally {
+          metaId.textContent = videoId;
+          const mainThumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+          metaThumbnail.src = mainThumb;
+
+          // Configure thumbnail image sources for downstream download cards
+          const thumbMax = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+          const thumbSd = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
+          const thumbHq = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+          const thumbMq = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+
+          thumbImgMax.src = thumbMax;
+          thumbImgSd.src = thumbSd;
+          thumbImgHq.src = thumbHq;
+          thumbImgMq.src = thumbMq;
+
+          // Check if resolutions actually load (some older videos lack maxresdefault or sddefault)
+          // Hide or replace cards dynamically if the resolution yields a 404 (YouTube returns placeholder images or fails)
+          checkImageExists(thumbMax).then(exists => {
+            if (!exists) {
+              cardMax.classList.add('opacity-50', 'pointer-events-none');
+              thumbImgMax.style.filter = 'grayscale(1)';
+            } else {
+              cardMax.classList.remove('opacity-50', 'pointer-events-none');
+              thumbImgMax.style.filter = 'none';
+            }
+          });
+
+          checkImageExists(thumbSd).then(exists => {
+            if (!exists) {
+              cardSd.classList.add('opacity-50', 'pointer-events-none');
+              thumbImgSd.style.filter = 'grayscale(1)';
+            } else {
+              cardSd.classList.remove('opacity-50', 'pointer-events-none');
+              thumbImgSd.style.filter = 'none';
+            }
+          });
+
+          // Fetch available video formats for quality/size information
+
+          fetch(`/api/formats?videoUrl=${encodeURIComponent(activeVideoUrl)}`)
+            .then(r => r.json())
+            .then(data => {
+              ytFormats = data.formats;
+
+              // Update quality dropdown labels with file sizes
+              const sel = document.getElementById('video-resolution');
+              if (sel) {
+                const options = sel.querySelectorAll('option');
+                options.forEach(opt => {
+                  const val = opt.value;
+                  if (val === 'mp3') {
+                    const audio = data.formats?.audio?.[0];
+                    if (audio?.size) opt.textContent = `MP3 Audio (${(audio.size / 1024 / 1024).toFixed(1)} MB)`;
+                    return;
+                  }
+                  const combined = data.formats?.combined?.filter(f => {
+                    const h = f.height;
+                    return val === '1085' ? h >= 1080 : val === '720' ? h >= 720 && h < 1080 : val === '480' ? h >= 480 && h < 720 : h >= 360 && h < 480;
+                  });
+                  if (combined?.[0]?.size) {
+                    opt.textContent = opt.textContent.replace(/\(.*?\)/, `(${(combined[0].size / 1024 / 1024).toFixed(0)} MB)`);
+                  }
+                });
+              }
+            })
+            .catch(() => {});
+
+          setSubmitLoading(false);
+          welcomeGuide.classList.add('hidden');
+          resultsPanel.classList.remove('hidden');
+        }
+      });
+
+      // Helper to check if YouTube image resource is a real resolution or placeholder (YouTube redirects 404 thumbnails to a 120px default image)
+      function checkImageExists(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            // YouTube placeholder for missing maxres is exactly 120x90
+            if (img.width === 120 && img.height === 90) {
+              resolve(false);
+            } else {
+              resolve(true);
+            }
+          };
+          img.onerror = () => resolve(false);
+          img.src = url;
+        });
+      }
+
+      // ──────────────── THUMBNAIL DOWNLOAD PROCESS ────────────────
+      document.querySelectorAll('.btn-download-thumb').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const type = button.getAttribute('data-type');
+          if (!activeVideoId || !type) return;
+
+          const originalContent = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = `
+            <svg class="w-3.5 h-3.5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" viewBox="0 0 24 24"></svg>
+            <span>Downloading...</span>
+          `;
+
+          try {
+            const rawImgUrl = `https://img.youtube.com/vi/${activeVideoId}/${type}.jpg`;
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawImgUrl)}`;
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error('Fetch failed');
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `${activeVideoId}_${type}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          } catch (err) {
+            console.error('Thumbnail download error:', err);
+            // Fallback: direct link (may open in new tab)
+            window.open(`https://img.youtube.com/vi/${activeVideoId}/${type}.jpg`, '_blank');
+          } finally {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+          }
+        });
+      });
+
+      // ──────────────── COPY THUMBNAIL TO CLIPBOARD ────────────────
+      document.querySelectorAll('.btn-copy-thumb').forEach(button => {
+        button.addEventListener('click', async (e) => {
+          const type = button.getAttribute('data-type');
+          if (!activeVideoId || !type) return;
+
+          const originalContent = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = `
+            <svg class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" viewBox="0 0 24 24"></svg>
+          `;
+
+          try {
+            const rawImgUrl = `https://img.youtube.com/vi/${activeVideoId}/${type}.jpg`;
+            const proxyImgUrl = `https://corsproxy.io/?${encodeURIComponent(rawImgUrl)}`;
+            
+            const response = await fetch(proxyImgUrl);
+            if (!response.ok) throw new Error('Image copy failed');
+            
+            const blob = await response.blob();
+            
+            // Convert JPEG blob to PNG client-side because browsers only support copying PNGs to clipboard
+            const img = new Image();
+            const localBlobUrl = URL.createObjectURL(blob);
+            
+            img.onload = async () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              
+              canvas.toBlob(async (pngBlob) => {
+                try {
+                  await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': pngBlob })
+                  ]);
+                  // Show Success Toast temporary state
+                  button.innerHTML = `
+                    <svg class="w-4 h-4 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  `;
+                  setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                  }, 2000);
+                } catch (writeErr) {
+                  console.error('Clipboard write block', writeErr);
+                  alert('Clipboard blocked. Please copy image manually.');
+                  button.innerHTML = originalContent;
+                  button.disabled = false;
+                }
+                URL.revokeObjectURL(localBlobUrl);
+              }, 'image/png');
+            };
+            img.src = localBlobUrl;
+          } catch (err) {
+            console.error('Unable to fetch and copy image blob', err);
+            // Copy plain text link as fallback
+            try {
+              await navigator.clipboard.writeText(`https://img.youtube.com/vi/${activeVideoId}/${type}.jpg`);
+              button.innerHTML = `
+                <svg class="w-4 h-4 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              `;
+              setTimeout(() => {
+                button.innerHTML = originalContent;
+                button.disabled = false;
+              }, 2000);
+            } catch (clipErr) {
+              button.innerHTML = originalContent;
+              button.disabled = false;
+            }
+          }
+        });
+      });
+
+      // ──────────────── VIDEO DOWNLOAD ────────────────
+      // All downloads are processed server-side via yt-dlp on the backend.
+      // The server downloads the video, merges streams if needed, and streams
+      // the result back to the client as a file download.
+      btnDownloadVideo.addEventListener('click', async () => {
+        if (!activeVideoUrl) return;
+
+        const targetRes = valResolution.value;
+        const isAudioOnly = targetRes === 'mp3';
+        const quality = isAudioOnly ? '720' : targetRes;
+
+        const downloadUrl = `/api/download?videoUrl=${encodeURIComponent(activeVideoUrl)}&quality=${quality}&audioOnly=${isAudioOnly}`;
+
+        // Show loading state
+        btnDownloadVideo.disabled = true;
+        const originalContent = btnDownloadVideo.innerHTML;
+        btnDownloadVideo.innerHTML = `
+          <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          <span>Downloading...</span>
+        `;
+
+        try {
+          const response = await fetch(downloadUrl);
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({ message: 'Download failed' }));
+            throw new Error(errData.message || 'Download failed');
+          }
+
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `yt-download.${isAudioOnly ? 'm4a' : 'mp4'}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+
+          fallbackBox.classList.add('hidden');
+        } catch (err) {
+          console.error('Download error:', err);
+          if (fallbackErrorMsg) {
+            fallbackErrorMsg.textContent = err.message || 'Download failed. Please try again.';
+          }
+          fallbackBox.classList.remove('hidden');
+        } finally {
+          btnDownloadVideo.disabled = false;
+          btnDownloadVideo.innerHTML = originalContent;
+        }
+      });
+    })();
+  </script>
+</Layout>

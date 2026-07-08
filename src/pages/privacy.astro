@@ -1,0 +1,41 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Privacy Policy — ALL Youtube Download">
+  <section class="max-w-[800px] mx-auto">
+    <h1 class="text-3xl md:text-4xl font-semibold tracking-display-xl text-primary mb-8">Privacy Policy</h1>
+    <div class="space-y-6 text-sm text-body-text leading-relaxed">
+      <p>Last updated: July 2026</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">1. Information We Collect</h2>
+      <p>ALL Youtube Download does not collect, store, or share any personal information. When you use our tool, the YouTube video URL you enter is processed locally on your device or through our server solely for the purpose of retrieving the requested media. We do not log, track, or retain any URLs or user data.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">2. How We Use Information</h2>
+      <p>The YouTube URL you provide is used exclusively to fetch video metadata and stream the requested download. No data is stored on our servers after the download is complete. Temporary files created during the download process are immediately deleted.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">3. Third-Party Services</h2>
+      <p>Our tool relies on the following third-party components for core functionality:</p>
+      <ul class="list-disc pl-6 space-y-1">
+        <li><strong>YouTube oEmbed API</strong> — Used to fetch video metadata (title, author). No user data is sent.</li>
+        <li><strong>CORS Proxy</strong> — Used to bypass browser CORS restrictions when fetching thumbnail images. These are ephemeral requests with no data retention.</li>
+        <li><strong>yt-dlp</strong> — An open-source command-line tool used server-side to process download requests. All processing is done in real-time with no logging.</li>
+      </ul>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">4. Cookies</h2>
+      <p>This website does not use cookies or any form of local storage tracking.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">5. Data Security</h2>
+      <p>All communications with our server are processed in memory and immediately discarded. No permanent records are created. We do not maintain databases, user accounts, or analytics systems.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">6. Children's Privacy</h2>
+      <p>Our service is not directed at children under 13. We do not knowingly collect any information from children.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">7. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated revision date.</p>
+
+      <h2 class="text-lg font-semibold text-primary mt-8">8. Contact</h2>
+      <p>If you have any questions about this Privacy Policy, please open an issue on our GitHub repository.</p>
+    </div>
+  </section>
+</Layout>

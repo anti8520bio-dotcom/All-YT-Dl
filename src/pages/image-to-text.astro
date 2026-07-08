@@ -1,0 +1,873 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Image to Text Converter — Free Online OCR | Extract Text from Images | All YT DL"
+  description="Free online image to text converter. Extract text from images, screenshots, and photos with OCR. Convert image to text online - copy formatted text preserving colors and bold. No uploads, 100% private."
+>
+  <!-- Hero Section -->
+  <section class="flex flex-col items-center justify-center text-center gap-6 mt-6 mb-16 relative z-10" aria-labelledby="hero-title">
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-canvas border border-hairline shadow-level-2 rounded-full" aria-label="Announcement">
+      <span class="inline-block w-2 h-2 rounded-full bg-link animate-pulse" aria-hidden="true"></span>
+      <span class="font-mono text-[10px] uppercase tracking-wider font-semibold text-primary">
+        New Tool — OCR Engine
+      </span>
+    </div>
+
+    <h1 id="hero-title" class="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-display-xl text-primary leading-none text-wrap-balance">
+      Image to Text,<br />instantly.
+    </h1>
+
+    <p class="max-w-[580px] text-base md:text-lg text-body-text leading-relaxed text-wrap-balance">
+      Upload a screenshot or any image containing text. Our OCR engine reads the content and returns it as plain text — ready to copy.
+    </p>
+  </section>
+
+  <!-- Main Tool Container -->
+  <section id="ocr-tool" class="relative z-10 max-w-[800px] mx-auto mb-20" aria-label="Image to Text OCR Tool">
+    <div class="bg-canvas border border-hairline rounded-lg shadow-level-4 p-6 md:p-8 transition-all duration-300">
+
+      <!-- Upload Area -->
+      <div id="upload-area" class="relative border-2 border-dashed border-hairline-strong rounded-sm p-10 md:p-14 text-center cursor-pointer hover:border-link/40 transition-colors duration-200 bg-canvas-soft" role="button" tabindex="0" aria-label="Upload an image for text extraction">
+        <input
+          id="file-input"
+          type="file"
+          accept="image/*"
+          class="sr-only"
+          aria-hidden="true"
+        />
+        <div id="upload-prompt" class="flex flex-col items-center gap-3">
+          <svg class="w-10 h-10 text-mute" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          <span class="text-sm font-semibold text-primary">Drop an image here or click to browse</span>
+          <span class="text-xs text-mute">Supports JPG, PNG, WebP — max 20MB</span>
+        </div>
+        <div id="preview-container" class="hidden relative">
+          <img id="preview-image" src="" alt="Uploaded image preview" class="max-h-[400px] mx-auto rounded-xs object-contain" />
+          <button
+            id="btn-remove-image"
+            type="button"
+            class="absolute top-2 right-2 w-8 h-8 bg-primary/80 hover:bg-primary text-on-primary rounded-full flex items-center justify-center shadow-level-3 transition-colors cursor-pointer"
+            aria-label="Remove uploaded image"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Extract Button -->
+      <div class="mt-6 flex justify-center">
+        <button
+          id="btn-extract"
+          type="button"
+          disabled
+          class="h-11 px-8 bg-primary text-on-primary text-sm font-semibold rounded-sm shadow-level-3 hover:bg-primary/95 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <svg id="extract-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+          <span id="extract-text">Extract Text</span>
+        </button>
+      </div>
+
+      <!-- Progress Indicator -->
+      <div id="ocr-progress" class="hidden mt-6 p-4 border border-hairline bg-canvas-soft-2 rounded-sm space-y-3">
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span id="ocr-status" class="text-body-text">Initializing OCR engine…</span>
+          <span id="ocr-progress-pct" class="text-primary font-semibold">0%</span>
+        </div>
+        <div class="w-full h-1 bg-hairline rounded-full overflow-hidden">
+          <div id="ocr-progress-bar" class="h-full bg-link transition-all duration-300 w-0"></div>
+        </div>
+      </div>
+
+      <!-- Results Panel -->
+      <div id="results-panel" class="hidden mt-8 space-y-4 animate-fade-in">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <h3 class="font-mono text-xs uppercase tracking-widest text-primary font-semibold">Extracted Text</h3>
+          <div class="flex items-center gap-2">
+            <span id="word-count" class="text-[10px] text-mute font-mono"></span>
+          </div>
+        </div>
+
+        <!-- Formatted Output (renders colors & bold) -->
+        <div id="formatted-output" class="w-full bg-canvas border border-hairline rounded-sm p-4 md:p-5 text-sm text-ink leading-relaxed min-h-[120px] whitespace-pre-wrap break-words shadow-level-1"></div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            id="btn-copy-formatted"
+            type="button"
+            class="h-7 px-3 bg-primary text-on-primary text-xs font-medium rounded-xs shadow-level-2 hover:bg-primary/95 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span>Copy Formatted</span>
+          </button>
+          <button
+            id="btn-copy-plain"
+            type="button"
+            class="h-7 px-3 bg-canvas border border-hairline hover:bg-canvas-soft-2 text-primary text-xs font-medium rounded-xs shadow-level-2 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span>Copy Plain Text</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div id="error-message" class="hidden mt-4 text-xs text-error font-medium flex items-center gap-1.5" role="alert">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span id="error-text"></span>
+      </div>
+
+      <!-- How It Works -->
+      <div id="guide" class="mt-8 border border-hairline bg-canvas-soft rounded-sm p-5 md:p-6 text-center">
+        <h3 class="font-mono text-[11px] uppercase tracking-widest text-primary font-semibold mb-2">How It Works</h3>
+        <p class="text-xs text-body-text leading-relaxed max-w-[520px] mx-auto">
+          Upload a clear image containing text — screenshots, scanned documents, whiteboard photos, or any image with readable content. The OCR engine processes everything in your browser — no files are uploaded to any server.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="relative z-10 max-w-[1200px] mx-auto border-t border-hairline pt-16 mb-20" aria-labelledby="features-title">
+    <div class="text-center max-w-[600px] mx-auto mb-12">
+      <h2 id="features-title" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold mb-2">Why Use This Tool</h2>
+      <p class="text-xl md:text-2xl font-semibold tracking-display-md text-primary text-pretty leading-none">
+        Private, fast, and accurate.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-link/10 text-link flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75c0 1.24 1.01 2.25 2.25 2.25z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">100% Private</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          All OCR processing happens in your browser using Tesseract.js. Your images never leave your device — zero server uploads.
+        </p>
+      </div>
+
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-violet/10 text-violet flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">Fast Processing</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          The pre-trained OCR model loads once and reuses its language data for all subsequent extractions — making repeated use near-instant.
+        </p>
+      </div>
+
+      <div class="bg-canvas border border-hairline rounded-md p-6 shadow-level-3">
+        <div class="w-8 h-8 rounded-full bg-cyan-deep/10 text-cyan-deep flex items-center justify-center mb-4" aria-hidden="true">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+          </svg>
+        </div>
+        <h3 class="text-sm font-semibold text-primary tracking-display-sm">Accurate OCR</h3>
+        <p class="text-xs text-body-text mt-2 leading-relaxed">
+          Powered by Tesseract.js — the JavaScript port of the industry-standard Tesseract OCR engine with support for multiple languages. Preserves text colors and formatting.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is my image uploaded to any server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. All OCR processing is done entirely in your browser using Tesseract.js. Your image never leaves your device and is not uploaded to any server."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which image formats are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The tool supports any image format your browser can render - JPG, PNG, WebP, AVIF, GIF, BMP, and SVG. Maximum file size is 20 MB."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does it preserve colors and bold text?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! The tool analyzes each word's region to detect the text color and whether it's bold. Red text appears red, blue text appears blue, and bold words are shown in bold - exactly as they appear in the image."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How accurate is the OCR?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Accuracy depends heavily on image quality. High-contrast, well-lit images with clean printed text achieve near 100% accuracy. Low-resolution, noisy, or blurry images produce more errors. For best results, use clear screenshots or scanned documents."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can it read handwritten text?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Handwriting recognition is limited. Tesseract is primarily designed for printed text. Neat, block-style handwriting in high-resolution images may be partially recognized, but cursive or messy handwriting will have low accuracy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What languages are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tesseract.js supports over 100 languages including English, Spanish, French, German, Chinese, Arabic, Hindi, and many more. The engine automatically downloads the required language data on first use."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does it need to download language data the first time?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Tesseract uses trained language model files (traineddata) to recognize text patterns for each language. These files are downloaded from a CDN on first use and cached by your browser for future sessions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is an internet connection required?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. The Tesseract OCR engine is loaded from a CDN, and the first-time use downloads language data files. Once loaded and cached, the actual OCR processing runs locally in your browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the maximum file size?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The maximum file size is 20 MB. Most screenshots and photos are well under this limit. If your image is larger, consider resizing or compressing it before uploading."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="relative z-10 max-w-[800px] mx-auto border-t border-hairline pt-16 mb-20" aria-labelledby="faq-title">
+    <div class="text-center mb-10">
+      <h2 id="faq-title" class="font-mono text-xs uppercase tracking-widest text-primary font-semibold mb-2">FAQ</h2>
+      <p class="text-xl md:text-2xl font-semibold tracking-display-md text-primary text-pretty leading-none">
+        Common Questions
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Is my image uploaded to any server?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          No. All OCR processing is done entirely in your browser using Tesseract.js. Your image never leaves your device and is not uploaded to any server.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Which image formats are supported?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          The tool supports any image format your browser can render - JPG, PNG, WebP, AVIF, GIF, BMP, and SVG. Maximum file size is 20 MB.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>How accurate is the OCR?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Accuracy depends heavily on image quality. High-contrast, well-lit images with clean printed text achieve near 100% accuracy. Low-resolution, noisy, or blurry images produce more errors. For best results, use clear screenshots or scanned documents.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Can it read handwritten text?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Handwriting recognition is limited. Tesseract is primarily designed for printed text. Neat, block-style handwriting in high-resolution images may be partially recognized, but cursive or messy handwriting will have low accuracy.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>What languages are supported?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Tesseract.js supports over 100 languages including English, Spanish, French, German, Chinese, Arabic, Hindi, and many more. The engine automatically downloads the required language data on first use.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Does it preserve colors and bold text?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Yes! The tool analyzes each word&apos;s region to detect the text color and whether it&apos;s bold. Red text appears red, blue text appears blue, and bold words are shown in bold - exactly as they appear in the image.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Why does it need to download language data?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Tesseract uses trained language model files (traineddata) to recognize text patterns for each language. These files are downloaded from a CDN on first use and cached by your browser for future sessions.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>Is an internet connection required?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          Yes. The Tesseract OCR engine is loaded from a CDN, and the first-time use downloads language data files. Once loaded and cached, the actual OCR processing runs locally in your browser.
+        </div>
+      </details>
+
+      <details class="group bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden transition-all duration-200">
+        <summary class="flex justify-between items-center p-4 font-semibold text-xs uppercase tracking-wider text-primary cursor-pointer select-none hover:bg-canvas-soft-2 focus:outline-none focus-visible:bg-canvas-soft-2 list-none">
+          <span>What is the maximum file size?</span>
+          <svg class="w-4 h-4 text-mute transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="p-4 border-t border-hairline text-xs text-body-text leading-relaxed bg-canvas-soft">
+          The maximum file size is 20 MB. Most screenshots and photos are well under this limit. If your image is larger, consider resizing or compressing it before uploading.
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script is:inline>
+    (function() {
+      var uploadArea = document.getElementById('upload-area');
+      var fileInput = document.getElementById('file-input');
+      var uploadPrompt = document.getElementById('upload-prompt');
+      var previewContainer = document.getElementById('preview-container');
+      var previewImage = document.getElementById('preview-image');
+      var btnRemoveImage = document.getElementById('btn-remove-image');
+      var btnExtract = document.getElementById('btn-extract');
+      var extractTextSpan = document.getElementById('extract-text');
+      var ocrProgress = document.getElementById('ocr-progress');
+      var ocrStatus = document.getElementById('ocr-status');
+      var ocrProgressPct = document.getElementById('ocr-progress-pct');
+      var ocrProgressBar = document.getElementById('ocr-progress-bar');
+      var resultsPanel = document.getElementById('results-panel');
+      var formattedOutput = document.getElementById('formatted-output');
+      var btnCopyFormatted = document.getElementById('btn-copy-formatted');
+      var btnCopyPlain = document.getElementById('btn-copy-plain');
+      var wordCount = document.getElementById('word-count');
+      var errorMessage = document.getElementById('error-message');
+      var errorText = document.getElementById('error-text');
+      var guide = document.getElementById('guide');
+
+      var selectedFile = null;
+      var isProcessing = false;
+      var lastFormattedHtml = '';
+      var lastPlainText = '';
+
+      function showError(msg) {
+        errorText.textContent = msg;
+        errorMessage.classList.remove('hidden');
+      }
+
+      function clearError() {
+        errorMessage.classList.add('hidden');
+      }
+
+      function setProcessing(processing) {
+        isProcessing = processing;
+        if (processing) {
+          btnExtract.disabled = true;
+          btnExtract.querySelector('svg').classList.add('hidden');
+          extractTextSpan.textContent = 'Processing\u2026';
+          ocrProgress.classList.remove('hidden');
+          resultsPanel.classList.add('hidden');
+        } else {
+          btnExtract.querySelector('svg').classList.remove('hidden');
+          extractTextSpan.textContent = 'Extract Text';
+          ocrProgress.classList.add('hidden');
+          if (!selectedFile) {
+            btnExtract.disabled = true;
+          }
+        }
+      }
+
+      function updateOcrProgress(pct, status) {
+        ocrProgressPct.textContent = pct + '%';
+        ocrProgressBar.style.width = pct + '%';
+        ocrStatus.textContent = status;
+      }
+
+      function handleFile(file) {
+        clearError();
+        if (!file) return;
+        if (file.size > 20 * 1024 * 1024) {
+          showError('File is too large. Maximum size is 20 MB.');
+          return;
+        }
+        if (!file.type.startsWith('image/')) {
+          showError('Please select a valid image file.');
+          return;
+        }
+        selectedFile = file;
+        btnExtract.disabled = false;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          previewImage.src = e.target.result;
+          uploadPrompt.classList.add('hidden');
+          previewContainer.classList.remove('hidden');
+          resultsPanel.classList.add('hidden');
+          guide.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      uploadArea.addEventListener('click', function() { fileInput.click(); });
+      uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('border-link', 'bg-link-bg-soft/30');
+      });
+      uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('border-link', 'bg-link-bg-soft/30');
+      });
+      uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('border-link', 'bg-link-bg-soft/30');
+        var files = e.dataTransfer.files;
+        if (files.length > 0) handleFile(files[0]);
+      });
+      fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
+      });
+      uploadArea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      btnRemoveImage.addEventListener('click', function() {
+        selectedFile = null;
+        fileInput.value = '';
+        previewImage.src = '';
+        previewContainer.classList.add('hidden');
+        uploadPrompt.classList.remove('hidden');
+        btnExtract.disabled = true;
+        resultsPanel.classList.add('hidden');
+        guide.classList.remove('hidden');
+        clearError();
+      });
+
+      // ──────────────── PIXEL ANALYSIS ────────────────
+      function getBackgroundColor(data, w, h) {
+        var samplePixels = [];
+        for (var x = 0; x < w; x += 10) {
+          for (var y = 0; y < h; y += 10) {
+            if (x > w * 0.15 && x < w * 0.85 && y > h * 0.15 && y < h * 0.85) continue;
+            var idx = (y * w + x) * 4;
+            samplePixels.push({ r: data[idx], g: data[idx + 1], b: data[idx + 2], a: data[idx + 3] });
+          }
+        }
+        if (samplePixels.length === 0) return { r: 255, g: 255, b: 255 };
+        var avg = { r: 0, g: 0, b: 0 };
+        for (var i = 0; i < samplePixels.length; i++) {
+          avg.r += samplePixels[i].r;
+          avg.g += samplePixels[i].g;
+          avg.b += samplePixels[i].b;
+        }
+        avg.r = Math.round(avg.r / samplePixels.length);
+        avg.g = Math.round(avg.g / samplePixels.length);
+        avg.b = Math.round(avg.b / samplePixels.length);
+        return avg;
+      }
+
+      function colorDistance(r1, g1, b1, r2, g2, b2) {
+        return Math.sqrt((r1 - r2) * (r1 - r2) + (g1 - g2) * (g1 - g2) + (b1 - b2) * (b1 - b2));
+      }
+
+      function rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(function(c) {
+          var hex = Math.round(Math.max(0, Math.min(255, c))).toString(16);
+          return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+      }
+
+      function analyzeWordRegion(ctx, bbox, bgColor) {
+        var x0 = Math.round(bbox.x0);
+        var y0 = Math.round(bbox.y0);
+        var x1 = Math.round(bbox.x1);
+        var y1 = Math.round(bbox.y1);
+        var w = Math.max(1, x1 - x0);
+        var h = Math.max(1, y1 - y0);
+
+        try {
+          var imageData = ctx.getImageData(x0, y0, w, h);
+        } catch (e) {
+          return { color: '#000000', isBold: false };
+        }
+        var pixels = imageData.data;
+
+        var textR = 0, textG = 0, textB = 0, textCount = 0;
+        var textPixels = 0;
+        var totalPixels = pixels.length / 4;
+
+        for (var i = 0; i < pixels.length; i += 4) {
+          var r = pixels[i];
+          var g = pixels[i + 1];
+          var b = pixels[i + 2];
+          var a = pixels[i + 3];
+          if (a < 50) continue;
+          var diff = colorDistance(r, g, b, bgColor.r, bgColor.g, bgColor.b);
+          if (diff > 40) {
+            textPixels++;
+            textR += r;
+            textG += g;
+            textB += b;
+            textCount++;
+          }
+        }
+
+        var fillRatio = totalPixels > 0 ? textPixels / totalPixels : 0;
+        var color = '#000000';
+        if (textCount > 0) {
+          color = rgbToHex(textR / textCount, textG / textCount, textB / textCount);
+        }
+        return { color: color, fillRatio: fillRatio };
+      }
+
+      function groupIntoLines(words) {
+        if (!words || words.length === 0) return [];
+        var sorted = words.slice().sort(function(a, b) {
+          return a.bbox.y0 - b.bbox.y0;
+        });
+        var lines = [];
+        var currentLine = [sorted[0]];
+        var currentY = sorted[0].bbox.y0;
+        for (var i = 1; i < sorted.length; i++) {
+          if (Math.abs(sorted[i].bbox.y0 - currentY) < 20) {
+            currentLine.push(sorted[i]);
+          } else {
+            lines.push(currentLine);
+            currentLine = [sorted[i]];
+            currentY = sorted[i].bbox.y0;
+          }
+        }
+        if (currentLine.length > 0) lines.push(currentLine);
+        return lines;
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
+      function buildFormattedHtml(lines, wordStyles) {
+        var parts = [];
+        for (var l = 0; l < lines.length; l++) {
+          var line = lines[l].slice().sort(function(a, b) { return a.bbox.x0 - b.bbox.x0; });
+          var lineParts = [];
+          for (var w = 0; w < line.length; w++) {
+            var word = line[w];
+            var style = wordStyles[word.text + '_' + word.bbox.x0 + '_' + word.bbox.y0];
+            var color = '#000000';
+            var isBold = false;
+            if (style) {
+              color = style.color;
+              isBold = style.isBold;
+            }
+            var css = 'color: ' + color + ';';
+            if (isBold) css += ' font-weight: 700;';
+            lineParts.push('<span style="' + css + '">' + escapeHtml(word.text) + '</span>');
+          }
+          parts.push('<p style="margin: 0 0 0.4em 0;">' + lineParts.join(' ') + '</p>');
+        }
+        return parts.join('');
+      }
+
+      function buildPlainText(lines) {
+        var parts = [];
+        for (var l = 0; l < lines.length; l++) {
+          var line = lines[l].slice().sort(function(a, b) { return a.bbox.x0 - b.bbox.x0; });
+          parts.push(line.map(function(w) { return w.text; }).join(' '));
+        }
+        return parts.join('\n');
+      }
+
+      // ──────────────── OCR EXTRACTION ────────────────
+      btnExtract.addEventListener('click', async function() {
+        if (!selectedFile || isProcessing) return;
+
+        clearError();
+        setProcessing(true);
+        updateOcrProgress(5, 'Loading image\u2026');
+
+        try {
+          var dataUrl = previewImage.src;
+          var img = new Image();
+          img.src = dataUrl;
+          await new Promise(function(resolve, reject) {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+
+          var canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          updateOcrProgress(15, 'Loading OCR engine\u2026');
+
+          var worker = await Tesseract.createWorker('eng', 1, {
+            logger: function(m) {
+              if (m.status === 'recognizing text') {
+                var pct = Math.round(m.progress * 100);
+                updateOcrProgress(Math.max(25, Math.min(90, pct)), 'Recognizing text\u2026');
+              } else if (m.status === 'loading tesseract core') {
+                updateOcrProgress(10, 'Loading Tesseract core\u2026');
+              } else if (m.status === 'initializing tesseract') {
+                updateOcrProgress(12, 'Initializing engine\u2026');
+              } else if (m.status === 'loading language traineddata') {
+                updateOcrProgress(20, 'Loading language data\u2026');
+              }
+            },
+          });
+
+          updateOcrProgress(45, 'Processing image\u2026');
+          var result = await worker.recognize(canvas);
+          var words = result.data.words;
+
+          if (!words || words.length === 0) {
+            showError('No text could be detected in the image. Try a clearer image with more visible text.');
+            setProcessing(false);
+            await worker.terminate();
+            return;
+          }
+
+          updateOcrProgress(92, 'Analyzing text formatting\u2026');
+
+          // First pass: detect background color from each word region
+          var overallBg = { r: 255, g: 255, b: 255 };
+          var bgSamples = [];
+          for (var i = 0; i < Math.min(words.length, 20); i++) {
+            var w = words[i];
+            var bx0 = Math.round(w.bbox.x0);
+            var by0 = Math.round(w.bbox.y0);
+            var bw = Math.max(1, Math.round(w.bbox.x1) - bx0);
+            var bh = Math.max(1, Math.round(w.bbox.y1) - by0);
+            if (bw > 2 && bh > 2) {
+              var id = ctx.getImageData(bx0, by0, bw, bh);
+              bgSamples.push({ data: id.data, w: bw, h: bh });
+            }
+          }
+          if (bgSamples.length > 0) {
+            var allPixels = [];
+            for (var s = 0; s < bgSamples.length; s++) {
+              var d = bgSamples[s].data;
+              var pw = bgSamples[s].w;
+              var ph = bgSamples[s].h;
+              for (var x = 0; x < pw; x += 3) {
+                for (var y = 0; y < ph; y += 3) {
+                  if (x > pw * 0.1 && x < pw * 0.9 && y > ph * 0.1 && y < ph * 0.9) continue;
+                  var idx = (y * pw + x) * 4;
+                  allPixels.push({ r: d[idx], g: d[idx + 1], b: d[idx + 2] });
+                }
+              }
+            }
+            if (allPixels.length > 0) {
+              var sumR = 0, sumG = 0, sumB = 0;
+              for (var p = 0; p < allPixels.length; p++) {
+                sumR += allPixels[p].r;
+                sumG += allPixels[p].g;
+                sumB += allPixels[p].b;
+              }
+              overallBg.r = Math.round(sumR / allPixels.length);
+              overallBg.g = Math.round(sumG / allPixels.length);
+              overallBg.b = Math.round(sumB / allPixels.length);
+            }
+          }
+
+          // Second pass: analyze each word's region for color + bold
+          var wordStyles = {};
+          var fillRatios = [];
+          for (var i = 0; i < words.length; i++) {
+            var word = words[i];
+            var key = word.text + '_' + word.bbox.x0 + '_' + word.bbox.y0;
+            var analysis = analyzeWordRegion(ctx, word.bbox, overallBg);
+            wordStyles[key] = { color: analysis.color, isBold: false };
+            fillRatios.push(analysis.fillRatio);
+          }
+
+          // Determine bold threshold
+          fillRatios.sort(function(a, b) { return a - b; });
+          var median = fillRatios.length % 2 === 0
+            ? (fillRatios[fillRatios.length / 2 - 1] + fillRatios[fillRatios.length / 2]) / 2
+            : fillRatios[Math.floor(fillRatios.length / 2)];
+          var boldThreshold = Math.max(0.25, median * 1.6);
+
+          // Mark bold words
+          for (var i = 0; i < words.length; i++) {
+            var word = words[i];
+            var key = word.text + '_' + word.bbox.x0 + '_' + word.bbox.y0;
+            var style = wordStyles[key];
+            var ratio = fillRatios[i];
+            if (ratio > boldThreshold) {
+              style.isBold = true;
+            }
+          }
+
+          updateOcrProgress(98, 'Building formatted output\u2026');
+
+          // Build output
+          var lines = groupIntoLines(words);
+          lastFormattedHtml = buildFormattedHtml(lines, wordStyles);
+          lastPlainText = buildPlainText(lines);
+
+          formattedOutput.innerHTML = lastFormattedHtml;
+
+          var totalWords = words.length;
+          wordCount.textContent = totalWords + ' words';
+          resultsPanel.classList.remove('hidden');
+
+          updateOcrProgress(100, 'Done!');
+          await worker.terminate();
+        } catch (err) {
+          console.error('OCR Error:', err);
+          showError('Text extraction failed. Please try again with a clearer image.');
+        } finally {
+          btnExtract.disabled = !selectedFile;
+          btnExtract.querySelector('svg').classList.remove('hidden');
+          extractTextSpan.textContent = 'Extract Text';
+          ocrProgress.classList.add('hidden');
+          isProcessing = false;
+        }
+      });
+
+      // ──────────────── COPY FORMATTED ────────────────
+      btnCopyFormatted.addEventListener('click', async function() {
+        if (!lastFormattedHtml) return;
+        var originalHtml = btnCopyFormatted.innerHTML;
+
+        try {
+          var fullHtml = '<meta charset="utf-8">' +
+            '<div style="font-family: Inter, sans-serif; font-size: 14px; line-height: 1.6;">' +
+            lastFormattedHtml.replace(/<p /g, '<p style="margin: 0 0 0.4em 0;" ') +
+            '</div>';
+          var htmlBlob = new Blob([fullHtml], { type: 'text/html' });
+          var plainBlob = new Blob([lastPlainText], { type: 'text/plain' });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': htmlBlob,
+              'text/plain': plainBlob,
+            }),
+          ]);
+          btnCopyFormatted.innerHTML = [
+            '<svg class="w-3.5 h-3.5 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">',
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>',
+            '<span>Copied!</span>',
+          ].join('');
+          setTimeout(function() { btnCopyFormatted.innerHTML = originalHtml; }, 2000);
+        } catch (err) {
+          // Fallback: copy plain text
+          try {
+            await navigator.clipboard.writeText(lastPlainText);
+            btnCopyFormatted.innerHTML = [
+              '<svg class="w-3.5 h-3.5 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">',
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>',
+              '<span>Copied (plain)</span>',
+            ].join('');
+            setTimeout(function() { btnCopyFormatted.innerHTML = originalHtml; }, 2000);
+          } catch (e) {
+            btnCopyFormatted.innerHTML = originalHtml;
+          }
+        }
+      });
+
+      // ──────────────── COPY PLAIN TEXT ────────────────
+      btnCopyPlain.addEventListener('click', async function() {
+        if (!lastPlainText) return;
+        var originalHtml = btnCopyPlain.innerHTML;
+
+        try {
+          await navigator.clipboard.writeText(lastPlainText);
+          btnCopyPlain.innerHTML = [
+            '<svg class="w-3.5 h-3.5 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">',
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>',
+            '<span>Copied!</span>',
+          ].join('');
+          setTimeout(function() { btnCopyPlain.innerHTML = originalHtml; }, 2000);
+        } catch (err) {
+          // Fallback: select and copy
+          var textarea = document.createElement('textarea');
+          textarea.value = lastPlainText;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          btnCopyPlain.innerHTML = [
+            '<svg class="w-3.5 h-3.5 text-link" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">',
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>',
+            '<span>Copied!</span>',
+          ].join('');
+          setTimeout(function() { btnCopyPlain.innerHTML = originalHtml; }, 2000);
+        }
+      });
+    })();
+  </script>
+</Layout>

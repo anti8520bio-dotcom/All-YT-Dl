@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+interface Props {
+  error?: Error;
+}
+
+const { error } = Astro.props as Props;
+---
+
+<Layout
+  title="500 — Server Error | ALL YT DL"
+  description="Something went wrong on our end. Please try again later."
+>
+  <section class="flex flex-col items-center justify-center text-center gap-6 mt-16 mb-20 relative z-10" aria-labelledby="error-title">
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-canvas border border-hairline shadow-level-2 rounded-full">
+      <span class="font-mono text-[10px] uppercase tracking-wider font-semibold text-mute">
+        Error 500
+      </span>
+    </div>
+
+    <h1 id="error-title" class="text-5xl md:text-7xl font-semibold tracking-display-xl text-primary leading-none">
+      Server error
+    </h1>
+
+    <p class="max-w-[420px] text-base md:text-lg text-body-text leading-relaxed">
+      Something went wrong on our end. Please try again later.
+    </p>
+
+    <a
+      href="/"
+      class="h-11 px-6 inline-flex items-center justify-center bg-primary text-on-primary text-sm font-semibold rounded-sm shadow-level-3 hover:bg-primary/95 transition-colors gap-2"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+      <span>Back to Home</span>
+    </a>
+
+    {error && (
+      <details class="max-w-[600px] w-full text-left mt-8 bg-canvas border border-hairline rounded-sm shadow-level-1 overflow-hidden">
+        <summary class="px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-mute font-semibold cursor-pointer select-none hover:bg-canvas-soft-2">
+          Error details
+        </summary>
+        <pre class="px-4 py-3 border-t border-hairline text-xs text-error font-mono overflow-x-auto whitespace-pre-wrap">{(error.message || 'Unknown error') + (error.stack ? '\n\n' + error.stack : '')}</pre>
+      </details>
+    )}
+  </section>
+</Layout>
