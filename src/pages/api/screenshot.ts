@@ -1,26 +1,15 @@
 import type { APIRoute } from 'astro';
-import puppeteer from 'puppeteer';
-import type { Browser } from 'puppeteer';
 
-let browserPromise: Promise<Browser> | null = null;
+const SCREENSHOT_API_KEY = '';
 
-async function getBrowser(): Promise<Browser> {
-  if (browserPromise) return browserPromise;
-  browserPromise = puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-    ],
-  });
-  const browser = await browserPromise;
-  browser.on('disconnected', () => {
-    browserPromise = null;
-  });
-  return browser;
-}
+const SCREENSHOT_SERVICES: Record<string, (url: string, format: string) => string> = {
+  screenshotlayer: (url, format) =>
+    `https://api.screenshotlayer.com/api/capture?access_key=${SCREENSHOT_API_KEY || 'YOUR_KEY'}&url=${encodeURIComponent(url)}&viewport=1920x1080&fullpage=1&format=${format === 'pdf' ? 'PNG' : 'PNG'}`,
+  screenshotone: (url, format) =>
+    `https://api.screenshotone.com/take?access_key=${SCREENSHOT_API_KEY || 'YOUR_KEY'}&url=${encodeURIComponent(url)}&viewport_width=1920&viewport_height=1080&full_page=true&format=${format === 'pdf' ? 'pdf' : 'png'}`,
+};
+
+const DEFAULT_SERVICE = 'screenshotone';
 
 export const GET: APIRoute = async ({ url: reqUrl }) => {
   const targetUrl = reqUrl.searchParams.get('url');
@@ -45,79 +34,39 @@ export const GET: APIRoute = async ({ url: reqUrl }) => {
   }
 
   try {
-    const browser = await getBrowser();
-    const page = await browser.newPage();
+    const apiUrl = SCREENSHOT_SERVICES[DEFAULT_SERVICE](validUrl.href, format);
 
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-
-    await page.setViewport({
-      width: 3840,
-      height: 2160,
-      deviceScaleFactor: 2,
+    const response = await fetch(apiUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
     });
 
-    await page.goto(validUrl.href, {
-      waitUntil: 'networkidle2',
-      timeout: 45000,
-    });
-
-    await page.waitForSelector('body', { timeout: 10000 }).catch(() => {});
-
-    // Scroll through page to trigger lazy content loading
-    await page.evaluate(async () => {
-      await new Promise<void>((resolve) => {
-        let totalHeight = 0;
-        const distance = 800;
-        const timer = setInterval(() => {
-          window.scrollBy(0, distance);
-          totalHeight += distance;
-          if (totalHeight >= document.body.scrollHeight - 500) {
-            clearInterval(timer);
-            resolve();
-          }
-        }, 150);
-      });
-    });
-
-    // Scroll back to top
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await new Promise((r) => setTimeout(r, 500));
-
-    if (format === 'pdf') {
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-      });
-
-      await page.close();
-
-      return new Response(pdfBuffer, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="screenshot.pdf"`,
-          'Content-Length': pdfBuffer.length.toString(),
-          'Cache-Control': 'no-cache',
-        },
-      });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      if (text.includes('Invalid access key') || text.includes('invalid_access_key')) {
+        return new Response(
+          JSON.stringify({
+            error: 'Screenshot service not configured',
+            message: 'Please sign up for a free API key at https://screenshotone.com and set the SCREENSHOT_API_KEY environment variable in Cloudflare Pages.',
+          }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      throw new Error(`Screenshot API returned ${response.status}: ${text.slice(0, 200)}`);
     }
 
-    const screenshotBuffer = await page.screenshot({
-      fullPage: true,
-      type: 'png',
-    });
+    const blob = await response.blob();
+    const contentType = format === 'pdf' ? 'application/pdf' : 'image/png';
+    const contentDisposition = format === 'pdf'
+      ? 'attachment; filename="screenshot.pdf"'
+      : 'inline; filename="screenshot.png"';
 
-    await page.close();
-
-    return new Response(screenshotBuffer, {
+    return new Response(blob, {
       status: 200,
       headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': `inline; filename="screenshot.png"`,
-        'Content-Length': screenshotBuffer.length.toString(),
+        'Content-Type': contentType,
+        'Content-Disposition': contentDisposition,
         'Cache-Control': 'no-cache',
       },
     });
@@ -128,10 +77,7 @@ export const GET: APIRoute = async ({ url: reqUrl }) => {
         error: 'Failed to capture screenshot',
         message: String(err),
       }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 };

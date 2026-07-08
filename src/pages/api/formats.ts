@@ -1,12 +1,42 @@
 import type { APIRoute } from 'astro';
-import { spawn } from 'node:child_process';
 
-/**
- * Extract available format URLs via yt-dlp --dump-json --no-download.
- * This is fast — it only parses metadata, never downloads any files.
- * The CDN URLs are then used by the client's browser to download directly
- * from YouTube's CDN (avoids server IP rate-limiting entirely).
- */
+interface YouTubeFormat {
+  itag: number;
+  url?: string;
+  mimeType?: string;
+  bitrate?: number;
+  width?: number;
+  height?: number;
+  fps?: number;
+  contentLength?: string;
+ 品質?: string;
+  qualityLabel?: string;
+  audioQuality?: string;
+  audioChannels?: number;
+  approxDurationMs?: string;
+  hasVideo: boolean;
+  hasAudio: boolean;
+}
+
+async function extractPlayerResponse(videoId: string): Promise<any> {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+  });
+
+  if (!response.ok) throw new Error(`YouTube returned status ${response.status}`);
+
+  const html = await response.text();
+
+  const match = html.match(/ytInitialPlayerResponse\s*=\s*({.*?});\s*(?:var|let|const|window\.)?/s);
+  if (!match) throw new Error('Could not extract player response from YouTube page');
+
+  return JSON.parse(match[1]);
+}
+
 export const GET: APIRoute = async ({ url: reqUrl }) => {
   const videoUrl = reqUrl.searchParams.get('videoUrl');
   if (!videoUrl) {
@@ -16,48 +46,58 @@ export const GET: APIRoute = async ({ url: reqUrl }) => {
     });
   }
 
-  try {
-    const json = await runDumpJSON(videoUrl);
-    const formats = json.formats || [];
+  const idMatch = videoUrl.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|shorts\/)([^#\&\?]*).*/);
+  const videoId = idMatch?.[2]?.length === 11 ? idMatch[2] : null;
+  if (!videoId) {
+    return new Response(JSON.stringify({ error: 'Invalid YouTube URL' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-    // Group formats by quality for the frontend
+  try {
+    const playerResponse = await extractPlayerResponse(videoId);
+    const videoDetails = playerResponse.videoDetails || {};
+    const streamingData = playerResponse.streamingData || {};
+    const rawFormats: any[] = [...(streamingData.formats || []), ...(streamingData.adaptiveFormats || [])];
+
+    const formats = rawFormats
+      .filter((f: any) => f.url || f.signatureCipher)
+      .map((f: any) => {
+        let url = f.url;
+        if (!url && f.signatureCipher) {
+          const params = new URLSearchParams(f.signatureCipher);
+          url = params.get('url') || '';
+        }
+        if (!url) return null;
+
+        const isVideo = f.mimeType?.startsWith('video/');
+        const isAudio = f.mimeType?.startsWith('audio/');
+
+        return {
+          itag: f.itag,
+          url,
+          mimeType: f.mimeType,
+          contentLength: f.contentLength,
+          qualityLabel: f.qualityLabel || (isVideo ? `${f.height || '?'}p` : null),
+          height: f.height || null,
+          fps: f.fps || null,
+          hasVideo: isVideo,
+          hasAudio: isAudio && !f.audioQuality?.includes('AUDIO_QUALITY_LOW'),
+          audioQuality: f.audioQuality || null,
+          bitrate: f.bitrate || null,
+        };
+      })
+      .filter(Boolean);
+
     const result = {
-      title: json.title,
-      duration: json.duration,
+      title: videoDetails.title || 'YouTube Video',
+      duration: parseInt(videoDetails.lengthSeconds || '0', 10),
+      thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
       formats: {
-        combined: formats
-          .filter((f: any) => f.url && f.vcodec !== 'none' && f.acodec !== 'none')
-          .map((f: any) => ({
-            qualityLabel: `${f.height}p`,
-            height: f.height,
-            formatId: f.format_id,
-            url: f.url,
-            ext: f.ext,
-            size: f.filesize || f.filesize_approx || null,
-            hasAudio: true,
-          })),
-        video: formats
-          .filter((f: any) => f.url && f.vcodec !== 'none' && f.acodec === 'none')
-          .map((f: any) => ({
-            qualityLabel: `${f.height}p`,
-            height: f.height,
-            formatId: f.format_id,
-            url: f.url,
-            ext: f.ext,
-            fps: f.fps,
-            size: f.filesize || f.filesize_approx || null,
-            hasAudio: false,
-          })),
-        audio: formats
-          .filter((f: any) => f.url && f.vcodec === 'none' && f.acodec !== 'none')
-          .map((f: any) => ({
-            qualityLabel: `${f.abr || 128}kbps`,
-            abr: f.abr,
-            formatId: f.format_id,
-            url: f.url,
-            ext: f.ext,
-            size: f.filesize || f.filesize_approx || null,
-          })),
+        combined: formats.filter((f: any) => f.hasVideo && f.hasAudio),
+        video: formats.filter((f: any) => f.hasVideo && !f.hasAudio),
+        audio: formats.filter((f: any) => !f.hasVideo && f.hasAudio),
       },
     };
 
@@ -76,38 +116,3 @@ export const GET: APIRoute = async ({ url: reqUrl }) => {
     });
   }
 };
-
-async function runDumpJSON(videoUrl: string): Promise<any> {
-  const args = [
-    '-m', 'yt_dlp',
-    '--dump-json',
-    '--no-download',
-    '--js-runtimes', 'deno',
-    '--no-progress', '--no-warnings', '-q',
-    '--no-playlist',
-    videoUrl,
-  ];
-
-  return new Promise((resolve, reject) => {
-    const proc = spawn('python', args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
-    let stdout = '';
-    let stderr = '';
-    proc.stdout.on('data', (chunk: Buffer) => { stdout += chunk.toString(); });
-    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
-    proc.on('close', (code) => {
-      if (code === 0) {
-        try {
-          resolve(JSON.parse(stdout));
-        } catch {
-          reject(new Error('Invalid JSON from yt-dlp'));
-        }
-      } else {
-        reject(new Error(`Exit ${code}: ${stderr.slice(0, 200)}`));
-      }
-    });
-    proc.on('error', reject);
-  });
-}

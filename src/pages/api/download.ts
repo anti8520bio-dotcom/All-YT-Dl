@@ -1,55 +1,29 @@
 import type { APIRoute } from 'astro';
-import { spawn } from 'node:child_process';
-import { createReadStream, unlink } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
-import { randomUUID } from 'node:crypto';
-import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-const ffmpegPath: string = require('ffmpeg-static') || '';
-
-const formatMap: Record<string, string> = {
-  audio: 'bestaudio/best',
-  '360': 'best[height<=360]',
-  '480': 'best[height<=480]',
-  '720': 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-  '1085': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-};
-
-async function downloadToFile(videoUrl: string, format: string, outputPath: string): Promise<void> {
-  const args = [
-    '-m', 'yt_dlp',
-    '-f', format,
-    '--js-runtimes', 'deno',
-    '--no-progress', '--no-warnings',
-    '--no-playlist',
-    '--throttled-rate', '100K',
-    '--extractor-retries', 'infinite',
-    '--retries', 'infinite',
-    '--ffmpeg-location', ffmpegPath,
-    '--merge-output-format', 'mp4',
-    '-o', outputPath,
-    videoUrl,
-  ];
-
-  return new Promise((resolve, reject) => {
-    const proc = spawn('python', args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
-    let stderr = '';
-    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
-    proc.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`Exit ${code}: ${stderr.slice(0, 300)}`));
-    });
-    proc.on('error', reject);
+async function extractPlayerResponse(videoId: string): Promise<any> {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
   });
+
+  if (!response.ok) throw new Error(`YouTube returned status ${response.status}`);
+  const html = await response.text();
+
+  const match = html.match(/ytInitialPlayerResponse\s*=\s*({.*?});\s*(?:var|let|const|window\.)?/s);
+  if (!match) throw new Error('Could not extract player response from YouTube page');
+
+  return JSON.parse(match[1]);
 }
+
+const QUALITY_HEIGHTS: Record<string, number> = {
+  '360': 360,
+  '480': 480,
+  '720': 720,
+  '1085': 1080,
+};
 
 export const GET: APIRoute = async ({ url: reqUrl }) => {
   const videoUrl = reqUrl.searchParams.get('videoUrl');
@@ -63,47 +37,83 @@ export const GET: APIRoute = async ({ url: reqUrl }) => {
     });
   }
 
-  const ext = isAudioOnly ? 'm4a' : 'mp4';
-  const contentType = isAudioOnly ? 'audio/mp4' : 'video/mp4';
-  const ytdlFormat = isAudioOnly
-    ? formatMap['audio']
-    : (formatMap[videoQuality] || formatMap['720']);
-
-  const tmpId = randomUUID();
-  const outputPath = path.join(os.tmpdir(), `${tmpId}.${ext}`);
+  const idMatch = videoUrl.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|shorts\/)([^#\&\?]*).*/);
+  const videoId = idMatch?.[2]?.length === 11 ? idMatch[2] : null;
+  if (!videoId) {
+    return new Response(JSON.stringify({ error: 'Invalid YouTube URL' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
-    await downloadToFile(videoUrl, ytdlFormat, outputPath);
+    const playerResponse = await extractPlayerResponse(videoId);
+    const streamingData = playerResponse.streamingData || {};
+    const rawFormats: any[] = [...(streamingData.formats || []), ...(streamingData.adaptiveFormats || [])];
 
-    const fileStat = await stat(outputPath);
-    const stream = createReadStream(outputPath);
+    let targetFormat: any = null;
 
-    stream.on('close', () => {
-      unlink(outputPath).catch(() => {});
+    if (isAudioOnly) {
+      targetFormat = rawFormats
+        .filter((f: any) => f.mimeType?.startsWith('audio/') && f.url)
+        .sort((a: any, b: any) => (parseInt(b.bitrate || '0') - parseInt(a.bitrate || '0')))[0];
+    } else {
+      const targetHeight = QUALITY_HEIGHTS[videoQuality] || 720;
+
+      targetFormat = rawFormats
+        .filter((f: any) => f.mimeType?.startsWith('video/') && f.url && f.height)
+        .filter((f: any) => f.height <= targetHeight)
+        .sort((a: any, b: any) => (b.height || 0) - (a.height || 0))[0];
+
+      if (!targetFormat) {
+        targetFormat = rawFormats
+          .filter((f: any) => f.mimeType?.startsWith('video/') && f.url && f.height)
+          .sort((a: any, b: any) => (b.height || 0) - (a.height || 0))[0];
+      }
+    }
+
+    if (!targetFormat) {
+      return new Response(JSON.stringify({ error: 'No suitable format found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const downloadUrl = targetFormat.url;
+    const mimeType = targetFormat.mimeType?.split(';')[0] || 'video/mp4';
+    const ext = isAudioOnly ? 'm4a' : 'mp4';
+
+    const videoResponse = await fetch(downloadUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://www.youtube.com/',
+      },
     });
-    stream.on('error', () => {
-      unlink(outputPath).catch(() => {});
-    });
 
-    return new Response(stream as unknown as ReadableStream, {
+    if (!videoResponse.ok) {
+      throw new Error(`YouTube CDN returned status ${videoResponse.status}`);
+    }
+
+    const contentLength = videoResponse.headers.get('Content-Length') || targetFormat.contentLength;
+
+    return new Response(videoResponse.body, {
       status: 200,
       headers: {
         'Content-Disposition': `attachment; filename="yt-download.${ext}"`,
-        'Content-Type': contentType,
-        'Content-Length': fileStat.size.toString(),
+        'Content-Type': mimeType,
+        'Content-Length': contentLength || '',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Accept-Ranges': 'bytes',
       },
     });
   } catch (err) {
-    unlink(outputPath).catch(() => {});
     console.error('Download error:', err);
-
     const msg = String(err);
     let userMsg = 'Download failed. Unable to process this video from the server.';
 
     if (msg.includes('403') || msg.includes('Sign in')) {
       userMsg = 'YouTube is blocking this request. Try again later or use a lower quality.';
-    } else if (msg.includes('ETIMEDOUT') || msg.includes('ECONNRESET') || msg.includes('ENOTFOUND')) {
+    } else if (msg.includes('ETIMEDOUT') || msg.includes('timed out')) {
       userMsg = 'YouTube connection timed out. Please try again.';
     }
 
